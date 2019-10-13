@@ -1,0 +1,317 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>EMO_2</title><meta name="generator" content="MATLAB 9.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-13"><meta name="DC.source" content="EMO_2.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="comment">% electro-magnetism algorithm</span>
+<span class="comment">% written by Mojtaba Eslami</span>
+
+clear <span class="string">all</span>
+
+n = 2;
+MaxIter = 100*n;
+LSIter = 10;
+m = 40;
+delta = 0.01;
+lk = -5.12;
+uk = 5.12;
+
+Length = delta*(uk-lk);
+
+<span class="comment">% generation of initial random vectors</span>
+<span class="keyword">for</span> i=1:m
+    lambda = rand(2,1);
+    x(:,i) = lk+lambda*(uk-lk);
+    f(i) = 20+x(1,i)^2+x(2,i)^2-10*cos(2*pi*x(1,i))-10*cos(2*pi*x(2,i));
+<span class="keyword">end</span>
+
+X = [-5.12:0.01:5.12];
+Y = [-5.12:0.01:5.12];
+<span class="keyword">for</span> i=1:length(X)
+    <span class="keyword">for</span> j=1:length(Y)
+        fun(i,j) = 20+X(i)^2+Y(j)^2-10*cos(2*pi*X(i))-10*cos(2*pi*Y(j));
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+figure(1);clf;hold <span class="string">on</span>
+contour(X,Y,fun,10)
+plot(x(1,:),x(2,:),<span class="string">'k.'</span>)
+xlabel(<span class="string">'x_1'</span>)
+ylabel(<span class="string">'x_2'</span>)
+colormap(gray)
+axis([-5.12 5.12 -5.12 5.12])
+
+f_best(1) = min(f);
+
+iteration = 1;
+<span class="keyword">while</span> iteration&lt;MaxIter
+    f_best(iteration) = min(f);
+
+    <span class="comment">% local search procedure</span>
+    counter = 1;
+    <span class="keyword">for</span> i=1:m
+        lambda1 = rand;
+        <span class="keyword">while</span> counter&lt;LSIter
+            y = x(:,i);
+            lambda2 = rand(2,1);
+            <span class="keyword">if</span> lambda1&gt;0.5
+                y = y+lambda2*Length;
+            <span class="keyword">else</span>
+                y = y-lambda2*Length;
+            <span class="keyword">end</span>
+
+            <span class="keyword">if</span> 20+y(1,i)^2+y(2,i)^2-10*cos(2*pi*y(1,i))-10*cos(2*pi*y(2,i))&lt;f(i)
+                x(:,i) = y;
+                counter = LSIter-1;
+                f(i) = 20+x(1,i)^2+x(2,i)^2-10*cos(2*pi*x(1,i))-10*cos(2*pi*x(2,i));
+            <span class="keyword">end</span>
+            counter = counter+1;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+    index = find(f==min(f));
+    x_best = x(:,index);
+
+    <span class="comment">% calculation of the total force vector</span>
+    <span class="keyword">for</span> i=1:m
+        q(i) = exp(-n*(f(i)-f(index))/sum(f-f(index)));
+        F = zeros(2,m);
+    <span class="keyword">end</span>
+    <span class="keyword">for</span> i=1:m
+        <span class="keyword">for</span> j=1:m
+            <span class="keyword">if</span> f(j)&lt;f(i)
+                F(:,i) = F(:,i)+(x(:,j)-x(:,i))*q(i)*q(j)/(norm(x(:,j)-x(:,i))^2);
+            <span class="keyword">elseif</span> j~=i
+                F(:,i) = F(:,i)-(x(:,j)-x(:,i))*q(i)*q(j)/(norm(x(:,j)-x(:,i))^2);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    <span class="comment">% movement according to the total force</span>
+    <span class="keyword">for</span> i=1:m
+        <span class="keyword">if</span> i~=index
+            lambda = rand;
+            F(:,i) = F(:,i)/norm(F(:,i));
+            <span class="keyword">for</span> k=1:n
+                <span class="keyword">if</span> F(k,i)&gt;0
+                    x(k,i) = x(k,i)+lambda*F(k,i)*(uk-x(k,i));
+                <span class="keyword">else</span>
+                    x(k,i) = x(k,i)+lambda*F(k,i)*(x(k,i)-lk);
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+    iteration = iteration+1;
+
+    <span class="keyword">for</span> i=1:m
+        f(i) = 20+x(1,i)^2+x(2,i)^2-10*cos(2*pi*x(1,i))-10*cos(2*pi*x(2,i));
+    <span class="keyword">end</span>
+
+<span class="keyword">end</span>
+
+x_best
+
+figure(2);clf;hold <span class="string">on</span>
+contour(X,Y,fun,10)
+plot(x(1,:),x(2,:),<span class="string">'k.'</span>)
+xlabel(<span class="string">'x_1'</span>)
+ylabel(<span class="string">'x_2'</span>)
+colormap(gray)
+axis([-5.12 5.12 -5.12 5.12])
+plot(x(1,:),x(2,:),<span class="string">'k.'</span>)
+
+figure(3)
+plot(f_best,<span class="string">'k.'</span>)
+xlabel(<span class="string">'iteration number'</span>)
+ylabel(<span class="string">'min f(x_1,x_2)'</span>)
+</pre><pre class="codeoutput">
+x_best =
+
+   -0.0368
+   -0.0163
+
+</pre><img vspace="5" hspace="5" src="EMO_2_01.png" alt=""> <img vspace="5" hspace="5" src="EMO_2_02.png" alt=""> <img vspace="5" hspace="5" src="EMO_2_03.png" alt=""> <p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2019a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+% electro-magnetism algorithm
+% written by Mojtaba Eslami
+
+clear all
+
+n = 2;
+MaxIter = 100*n;
+LSIter = 10;
+m = 40;
+delta = 0.01;
+lk = -5.12;
+uk = 5.12;
+
+Length = delta*(uk-lk);
+
+% generation of initial random vectors
+for i=1:m 
+    lambda = rand(2,1);
+    x(:,i) = lk+lambda*(uk-lk);
+    f(i) = 20+x(1,i)^2+x(2,i)^2-10*cos(2*pi*x(1,i))-10*cos(2*pi*x(2,i));
+end
+
+X = [-5.12:0.01:5.12];
+Y = [-5.12:0.01:5.12];
+for i=1:length(X)
+    for j=1:length(Y)
+        fun(i,j) = 20+X(i)^2+Y(j)^2-10*cos(2*pi*X(i))-10*cos(2*pi*Y(j));
+    end
+end
+figure(1);clf;hold on
+contour(X,Y,fun,10)
+plot(x(1,:),x(2,:),'k.')
+xlabel('x_1')
+ylabel('x_2')
+colormap(gray)
+axis([-5.12 5.12 -5.12 5.12])
+    
+f_best(1) = min(f);
+
+iteration = 1;
+while iteration<MaxIter
+    f_best(iteration) = min(f);
+
+    % local search procedure
+    counter = 1;
+    for i=1:m
+        lambda1 = rand;
+        while counter<LSIter
+            y = x(:,i);
+            lambda2 = rand(2,1);
+            if lambda1>0.5
+                y = y+lambda2*Length;
+            else
+                y = y-lambda2*Length;
+            end
+            
+            if 20+y(1,i)^2+y(2,i)^2-10*cos(2*pi*y(1,i))-10*cos(2*pi*y(2,i))<f(i)
+                x(:,i) = y;
+                counter = LSIter-1;
+                f(i) = 20+x(1,i)^2+x(2,i)^2-10*cos(2*pi*x(1,i))-10*cos(2*pi*x(2,i));
+            end
+            counter = counter+1;
+        end
+    end
+    index = find(f==min(f));
+    x_best = x(:,index);
+    
+    % calculation of the total force vector
+    for i=1:m
+        q(i) = exp(-n*(f(i)-f(index))/sum(f-f(index)));
+        F = zeros(2,m);
+    end
+    for i=1:m
+        for j=1:m
+            if f(j)<f(i)
+                F(:,i) = F(:,i)+(x(:,j)-x(:,i))*q(i)*q(j)/(norm(x(:,j)-x(:,i))^2);
+            elseif j~=i
+                F(:,i) = F(:,i)-(x(:,j)-x(:,i))*q(i)*q(j)/(norm(x(:,j)-x(:,i))^2);
+            end
+        end
+    end
+    
+    % movement according to the total force
+    for i=1:m
+        if i~=index
+            lambda = rand;
+            F(:,i) = F(:,i)/norm(F(:,i));
+            for k=1:n
+                if F(k,i)>0
+                    x(k,i) = x(k,i)+lambda*F(k,i)*(uk-x(k,i));
+                else
+                    x(k,i) = x(k,i)+lambda*F(k,i)*(x(k,i)-lk);
+                end
+            end
+        end
+    end
+    iteration = iteration+1;
+    
+    for i=1:m 
+        f(i) = 20+x(1,i)^2+x(2,i)^2-10*cos(2*pi*x(1,i))-10*cos(2*pi*x(2,i));
+    end
+
+end
+
+x_best
+
+figure(2);clf;hold on
+contour(X,Y,fun,10)
+plot(x(1,:),x(2,:),'k.')
+xlabel('x_1')
+ylabel('x_2')
+colormap(gray)
+axis([-5.12 5.12 -5.12 5.12])
+plot(x(1,:),x(2,:),'k.')
+
+figure(3)
+plot(f_best,'k.')
+xlabel('iteration number')
+ylabel('min f(x_1,x_2)')
+
+##### SOURCE END #####
+--></body></html>
